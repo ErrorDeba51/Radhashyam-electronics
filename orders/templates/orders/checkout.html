@@ -1,0 +1,627 @@
+<!-- radhasyam/orders/templates/orders/checkout.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row g-4">
+        <div class="col-12 col-lg-5">
+            <div class="card shadow-sm checkout-card">
+                <div class="card-body">
+                    <h4 class="mb-4 text-primary">Order Summary</h4>
+                    <div class="order-id mb-3">
+                        <small class="text-muted">Order ID:</small>
+                        <div class="fw-bold text-warning">#{{ order.id|stringformat:"06d" }}</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover">
+                            <thead class="bg-primary">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Qty</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td class="text-light">
+                                        <a href="{% url 'products:product_detail' item.product.id %}">
+                                            <img src="{{ item.product.images.first.image.url }}" 
+                                                 alt="{{ item.product.title }}"
+                                                 class="cart-product-img"
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                        </a>
+                                    </td>
+                                    <td class="text-success fw-bold">₹{{ item.product.price }}</td>
+                                    <td class="text-light">{{ item.quantity }}</td>
+                                    <td class="text-success fw-bold">₹{{ item.total_price }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="total-summary bg-dark p-3 rounded">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-light">Total Items:</span>
+                            <span class="text-warning">{{ order.total_items }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2" id="codAdvanceRow">
+                            <span class="text-light">
+                                COD Advance: <small class="text-danger">(applicable only for COD booking)</small>
+                            </span>
+                            <span class="text-warning" id="cod_advance_paid">Free</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-light">Delivery Charge:</span>
+                            <span class="text-warning">
+                                <span id="deliveryCharge">Free</span>
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-light">Grand Total:</span>
+                            <span class="text-warning">₹<span id="grandTotal">{{ order.total_amount|floatformat:2 }}</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <div class="card shadow-sm checkout-card">
+                <div class="card-body p-4">
+                    <h4 class="mb-4 text-primary">Shipping Details</h4>
+                    <form method="post" id="checkoutForm" 
+                          action="{% if request.resolver_match.url_name == 'checkout_with_order' %}{% url 'orders:checkout_with_order' order_id=order.id %}{% else %}{% url 'orders:checkout' %}{% endif %}"
+                          class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label text-light">Full Name *</label>
+                                <input type="text" class="form-control" 
+                                       name="full_name" required
+                                       placeholder="Enter your full name"
+                                       value="{{ user.get_full_name|default:'' }}">
+                                <div class="invalid-feedback">Please enter your full name</div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label text-light">Phone Number *</label>
+                                <input type="tel" class="form-control" 
+                                       name="phone" pattern="[0-9]{10}" required
+                                       placeholder="10-digit mobile number"
+                                       value="{{ user.profile.phone_number|default:'' }}">
+                                <div class="invalid-feedback">Valid 10-digit number required</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label text-light">Email</label>
+                                <input type="email" class="form-control bg-secondary" 
+                                       value="{{ user.email }}" readonly>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label class="form-label text-light">Pincode *</label>
+                                <div class="pincode-select-container">
+                                    <input type="text" 
+                                           class="form-control pincode-select-input" 
+                                           name="pincode" 
+                                           id="pincodeInput"
+                                           required
+                                           placeholder="Search or select deliverable pincode"
+                                           autocomplete="off"
+                                           pattern="\d{6}"
+                                           title="6-digit pincode">
+                                    <div class="pincode-select-dropdown">
+                                        <div class="pincode-options-list">
+                                            {% for pincode in valid_pincodes %}
+                                            <div class="pincode-option" data-value="{{ pincode.code }}">
+                                                {{ pincode.code }}
+                                                <small class="text-muted ms-2">
+                                                    ({{ pincode.delivery_days }} day{% if pincode.delivery_days > 1 %}s{% endif %} delivery)
+                                                </small>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="invalid-feedback">
+                                    Sorry, delivery is not possible in this area. Check our deliverable areas or contact us.
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label text-light">Delivery Address *</label>
+                                <textarea class="form-control" name="address" 
+                                          rows="3" required
+                                          placeholder="Full address with landmarks">{% if user.profile.address %}{{ user.profile.address }}{% endif %}</textarea>
+                                <div class="invalid-feedback">Please enter delivery address</div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="payment-methods mb-4">
+                                    <h5 class="mb-3 text-primary">Payment Method</h5>
+                                    <div class="form-check payment-option">
+                                        <input class="form-check-input" type="radio" 
+                                               name="payment_method" id="cod" value="cod" checked>
+                                        <label class="form-check-label" for="cod">
+                                            <span class="fw-bold">Cash on Delivery (COD)</span>
+                                            <small class="d-block text-muted mt-1 cod-advance-text">
+                                                Advance Required: <span id="dynamicCodAdvance">Free</span>
+                                            </small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check payment-option mt-3">
+                                        <input class="form-check-input" type="radio" 
+                                               name="payment_method" id="online" value="razorpay">
+                                        <label class="form-check-label" for="online">
+                                            <span class="fw-bold">Online Payment</span>
+                                            <small class="d-block text-muted mt-1">
+                                                Secure payment via Razorpay
+                                            </small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms" required>
+                                    <label class="form-check-label text-light" for="terms">
+                                        I agree to the 
+                                        <a href="#" class="text-primary" data-bs-toggle="modal" 
+                                           data-bs-target="#termsModal">Terms & Conditions</a>
+                                    </label>
+                                    <div class="invalid-feedback">You must agree to the terms</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary w-100 py-3" id="submitBtn">
+                                    <i class="fas fa-lock me-2"></i>Place Order Securely
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header border-primary">
+                <h5 class="modal-title text-primary">Terms & Conditions</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h5 class="mb-3"> 🙏🏻 Radhashyam Electronics 🙏🏻</h5>
+                <h6>1. Order Confirmation</h6>
+                <p>All orders are subject to verification and approval. We reserve the right to cancel any order due to stock limitations, payment issues, or suspicious activity.</p>
+            
+                <h6>2. Pricing & Payments</h6>
+                <p>Prices may change without prior notice. Orders will only be processed after full or advance payment is successfully completed via the selected payment method.</p>
+            
+                <h6>3. Shipping & Delivery</h6>
+                <p>Estimated delivery timelines are provided at checkout. Delays due to logistics, weather, or unforeseen events are beyond our control. We will keep you informed in case of any major delays.</p>
+            
+                <h6>4. Return & Refund Policy</h6>
+                <p><strong>We follow a strict <u>NO REFUND POLICY</u>.</strong> Returns are only applicable for items damaged during delivery or manufacturing defects, reported within <strong>48 hours of delivery</strong> with valid photo/video proof. Items must be unused and in original packaging.</p>
+            
+                <h6>5. Warranty & Support</h6>
+                <p>Most electronic items come with a brand warranty. Please retain the invoice and original packaging to claim warranty from the manufacturer.</p>
+            
+                <h6>6. Data Privacy</h6>
+                <p>Your personal information is used solely for processing orders and delivery. We do not share your data with third parties without your consent, except as required by law.</p>
+            
+                <div class="alert alert-warning mt-4">
+                    By placing an order, you confirm that you have read and agree to all the above Terms & Conditions.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.checkout-card {
+    background: #1f2235;
+    border: 1px solid #32374d;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.form-control {
+    background: #2b2e45;
+    border: 1px solid #474c6d;
+    color: #e8eaf6;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #7c9fff;
+    box-shadow: 0 0 0 3px rgba(124, 159, 255, 0.4);
+    background: #363a5a;
+    color: #ffffff;
+}
+
+.payment-option {
+    background: #2b2e45;
+    border: 2px solid #3d4366;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.payment-option:hover {
+    transform: translateY(-2px);
+    border-color: #7c9fff;
+    background: #35395c;
+}
+
+.invalid-feedback {
+    color: #ff5e78;
+    font-weight: 500;
+    font-size: 0.9em;
+}
+
+.cart-product-img {
+    border-radius: 8px;
+    border: 1px solid #3d4366;
+    transition: transform 0.3s ease;
+}
+
+.cart-product-img:hover {
+    transform: scale(1.05);
+}
+
+.pincode-select-container {
+    position: relative;
+}
+
+.pincode-select-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #2b2e45;
+    border: 1px solid #474c6d;
+    border-radius: 4px;
+    z-index: 1000;
+    margin-top: 2px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.pincode-option {
+    padding: 10px 15px;
+    color: #e8eaf6;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #3d4366;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pincode-option:last-child {
+    border-bottom: none;
+}
+
+.pincode-option:hover {
+    background: #363a5a;
+    transform: translateX(2px);
+}
+
+.pincode-option small {
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+.pincode-select-input:focus + .pincode-select-dropdown,
+.pincode-select-dropdown:hover {
+    display: block;
+}
+
+.pincode-select-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.pincode-select-dropdown::-webkit-scrollbar-track {
+    background: #2b2e45;
+}
+
+.pincode-select-dropdown::-webkit-scrollbar-thumb {
+    background: #474c6d;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .checkout-card {
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .cart-product-img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .pincode-select-dropdown {
+        max-height: 200px;
+    }
+}
+</style>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Swal.fire({
+        title: '🚚 Delivery Notice',
+        html: `<div class="text-start">
+            <p class="mb-3">We currently deliver only within Birbhum district.</p>
+            <p>Please check the Pincode box to verify if your location is serviceable.</p>
+        </div>`,
+        icon: 'info',
+        confirmButtonText: 'Okay, I understand',
+        confirmButtonColor: '#7c9fff',
+        background: '#1f2235',
+        color: '#e8eaf6',
+        iconColor: '#7c9fff',
+        customClass: {
+            title: 'text-primary',
+            confirmButton: 'btn-primary'
+        }
+    });
+
+    // Pincode Dropdown Functionality
+    const pincodeInput = document.getElementById('pincodeInput');
+    const dropdown = document.querySelector('.pincode-select-dropdown');
+    const options = document.querySelectorAll('.pincode-option');
+
+    // Toggle dropdown visibility
+    pincodeInput.addEventListener('focus', function() {
+        dropdown.style.display = 'block';
+        this.select();
+    });
+
+    // Filter options while typing
+    pincodeInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        options.forEach(option => {
+            const value = option.getAttribute('data-value');
+            if (value.includes(searchTerm)) {
+                option.style.display = 'flex';
+            } else {
+                option.style.display = 'none';
+            }
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.pincode-select-container')) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    options.forEach(option => {
+        option.addEventListener('click', function() {
+            pincodeInput.value = this.getAttribute('data-value');
+            dropdown.style.display = 'none';
+            
+            const event = new Event('input', { bubbles: true });
+            pincodeInput.dispatchEvent(event);
+        });
+    });
+
+    const form = document.getElementById('checkoutForm');
+    const deliveryChargeEl = document.getElementById('deliveryCharge');
+    const grandTotalEl = document.getElementById('grandTotal');
+    const submitBtn = document.getElementById('submitBtn');
+    const baseAmount = parseFloat({{ order.product_total }});
+    const codAdvanceRow = document.getElementById('codAdvanceRow');
+    
+    let currentDeliveryCharge = 0;
+    let currentCodAdvance = 0;
+
+    function updatePaymentDisplay() {
+        const isCOD = document.getElementById('cod').checked;
+        codAdvanceRow.style.display = isCOD ? 'flex' : 'none';
+        updateGrandTotal();
+    }
+
+    function updateGrandTotal() {
+        const grandTotal = baseAmount + currentDeliveryCharge;
+        grandTotalEl.textContent = grandTotal.toFixed(2);
+        
+        const codDisplay = currentCodAdvance === 0 ? 
+            'Free' : `₹${currentCodAdvance.toFixed(2)}`;
+        document.getElementById('cod_advance_paid').textContent = codDisplay;
+        document.getElementById('dynamicCodAdvance').textContent = codDisplay;
+    }
+
+    document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+        radio.addEventListener('change', updatePaymentDisplay);
+    });
+
+    pincodeInput.addEventListener('input', async function() {
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(async () => {
+            const pincode = this.value.trim();
+            if(pincode.length === 6) {
+                try {
+                    const response = await fetch(`{% url 'orders:check_pincode' %}?pincode=${pincode}`);
+                    if(!response.ok) throw new Error('Pincode check failed');
+                    
+                    const data = await response.json();
+                    
+                    if(data.valid) {
+                        currentDeliveryCharge = parseFloat(data.delivery_charge);
+                        currentCodAdvance = parseFloat(data.cod_advance);
+
+                        deliveryChargeEl.textContent = 
+                            currentDeliveryCharge === 0 ? 'Free' : `₹${currentDeliveryCharge.toFixed(2)}`;
+                        
+                        updateGrandTotal();
+                        pincodeInput.classList.remove('is-invalid');
+                    } else {
+                        resetCharges();
+                        pincodeInput.classList.add('is-invalid');
+                    }
+                } catch(error) {
+                    console.error('Pincode validation failed:', error);
+                    resetCharges();
+                    pincodeInput.classList.add('is-invalid');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Pincode Error',
+                        text: 'Failed to validate pincode',
+                        background: '#1f2235',
+                        color: '#fff'
+                    });
+                }
+            } else {
+                resetCharges();
+            }
+        }, 500);
+    });
+
+    function resetCharges() {
+        currentDeliveryCharge = 0;
+        currentCodAdvance = 0;
+        deliveryChargeEl.textContent = 'Free';
+        updateGrandTotal();
+        pincodeInput.classList.add('is-invalid');
+    }
+
+    updatePaymentDisplay();
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span> Processing...`;
+
+        try {
+            let invalidFields = [];
+            Array.from(form.elements).forEach(element => {
+                if(element.required && !element.value.trim()) {
+                    element.classList.add('is-invalid');
+                    invalidFields.push(element);
+                }
+            });
+
+            if(!document.getElementById('terms').checked) {
+                invalidFields.push(document.getElementById('terms').parentElement);
+            }
+
+            if(pincodeInput.value.length !== 6) {
+                pincodeInput.classList.add('is-invalid');
+                invalidFields.push(pincodeInput);
+            }
+
+            if(invalidFields.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    html: 'Please fix highlighted fields',
+                    background: '#1f2235',
+                    color: '#fff'
+                });
+                invalidFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                invalidFields[0].focus();
+                return;
+            }
+
+            const formData = new FormData(form);
+            const formAction = form.getAttribute('action');
+            const response = await fetch(formAction, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            const contentType = response.headers.get('content-type');
+            let result;
+
+            if (contentType && contentType.includes('application/json')) {
+                result = await response.json();
+            } else {
+                const text = await response.text();
+                try {
+                    result = JSON.parse(text);
+                } catch {
+                    throw new Error(`Unexpected response: ${text.slice(0, 100)}`);
+                }
+            }
+
+            if (result.error) {
+                throw new Error(result.error);
+            }
+
+            if(result.payment_required) {
+                const options = {
+                    key: '{{ razorpay_key }}',
+                    amount: result.amount,
+                    currency: 'INR',
+                    order_id: result.razorpay_order_id,
+                    name: "Radhashyam Electronics",
+                    description: "Order Payment",
+                    handler: function(response) {
+                        window.location.href = 
+                            `{% url 'orders:payment_success' %}?order_id=${result.order_id}&payment_id=${response.razorpay_payment_id}`;
+                    },
+                    "modal": {
+                        "ondismiss": function() {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Payment Cancelled',
+                                text: 'Payment window was closed',
+                                background: '#1f2235',
+                                color: '#fff'
+                            });
+                        }
+                    }
+                };
+                
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } else {
+                window.location.href = result.redirect_url || `{% url 'orders:order_tracking' order_id=order.id %}`;
+            }
+        } catch(error) {
+            console.error('Submission error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Order Failed',
+                text: error.message.includes('Unexpected response') ? 
+                    'Please try again or contact support' : error.message,
+                background: '#1f2235',
+                color: '#fff'
+            });
+            
+            if (error.message.includes('No products selected')) {
+                setTimeout(() => {
+                    window.location.href = "{% url 'cart:cart_view' %}";
+                }, 2000);
+            }
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="fas fa-lock me-2"></i>Place Order Securely`;
+        }
+    });
+});
+</script>
+{% endblock %}

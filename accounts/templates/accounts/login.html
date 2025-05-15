@@ -1,0 +1,257 @@
+<!-- radhashyam/accounts/templates/accounts/login.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-tech" style="background: rgba(15, 15, 31, 0.98);
+                        border: 1px solid rgba(108, 92, 231, 0.3);
+                        border-radius: 12px;
+                        backdrop-filter: blur(8px);">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="mb-4 text-center" style="color: var(--tech-blue); font-weight: 600;">
+                        <i class="bi bi-shield-lock me-2"></i>Login to Your Account
+                    </h2>
+
+                    <!-- Error Display Section -->
+                    <div id="errorAlert" class="alert alert-dark alert-dismissible fade show d-none" role="alert"
+                        style="background: rgba(255,90,90,0.1); border: 1px solid rgba(255,90,90,0.3);">
+                        <span class="alert-text"></span>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                    </div>
+
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert alert-dark alert-dismissible fade show"
+                            style="background: rgba(255,165,0,0.1); border: 1px solid rgba(255,165,0,0.3);"
+                            role="alert">
+                            Invalid email or password. Please try again.
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"
+                                aria-label="Close"></button>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label for="email" class="form-label" style="color: var(--tech-blue); font-weight: 500;">
+                                <i class="bi bi-envelope me-2"></i>Email Address
+                            </label>
+                            <input type="email" class="form-control tech-input" id="email" name="username"
+                                autocomplete="username" required>
+                            <div class="invalid-feedback">Please enter a valid email</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label" style="color: var(--tech-blue); font-weight: 500;">
+                                <i class="bi bi-key me-2"></i>Password
+                            </label>
+                            <div class="input-group"> 
+                                <input type="password" class="form-control tech-input" id="password" name="password"
+                                    autocomplete="current-password" required>
+                                <button type="button" class="btn btn-tech-outline" onclick="togglePassword()">
+                                    
+                                    <i class="bi bi-eye" id="passwordToggleIcon"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback">Please enter your password</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-tech w-100 py-2">
+                            <span class="submit-text">Login Now</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        </button>
+
+                        <div class="mt-4 text-center links-section">
+                            <a href="{% url 'signup' %}" class="text-tech-blue hover-glow"
+                                style="font-weight: 500;">Create Account</a>
+                            <span class="mx-2 text-muted">|</span>
+                            <a href="{% url 'forgot_password' %}" class="text-accent hover-glow"
+                                style="font-weight: 500;">Forgot Password?</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .btn-tech-outline {
+        background: transparent;
+        border: 1px solid rgba(108, 92, 231, 0.3);
+        color: var(--tech-blue);
+        transition: all 0.3s ease;
+    }
+
+    .btn-tech-outline:hover {
+        background: rgba(108, 92, 231, 0.1);
+        border-color: rgba(108, 92, 231, 0.5);
+    }
+
+    .shadow-tech {
+        box-shadow: 0 8px 32px rgba(108, 92, 231, 0.1);
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(108, 92, 231, 0.2);
+    }
+
+    .tech-input {
+        background: rgba(26, 26, 46, 0.7) !important;
+        border: 1px solid rgba(108, 92, 231, 0.2) !important;
+        color: #e0e0ff !important;
+        transition: all 0.3s ease;
+        padding: 12px 16px;
+        border-radius: 8px;
+    }
+
+    .tech-input:focus {
+        border-color: var(--tech-blue) !important;
+        box-shadow: 0 0 0 3px rgba(77, 142, 255, 0.15) !important;
+    }
+
+    .hover-glow {
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+    }
+
+    .hover-glow::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 1px;
+        background: currentColor;
+        transition: width 0.3s ease;
+    }
+
+    .hover-glow:hover::after {
+        width: 100%;
+    }
+
+    @keyframes cardEnter {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card {
+        animation: cardEnter 0.4s ease-out;
+    }
+
+
+    .form-label {
+        color: var(--tech-blue) !important;
+        opacity: 1 !important;
+    }
+
+    .tech-input {
+        background: rgba(26, 26, 46, 0.7) !important;
+        border: 1px solid rgba(108, 92, 231, 0.3) !important;
+        color: #e0e0ff !important;
+    }
+
+    h2 {
+        text-shadow: 0 2px 4px rgba(108, 92, 231, 0.2);
+    }
+
+    /* Mobile Clarity */
+    @media (max-width: 768px) {
+        .form-label {
+            font-size: 1rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        const form = document.querySelector('form');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const submitText = form.querySelector('.submit-text');
+        const spinner = form.querySelector('.spinner-border');
+        const errorAlert = document.getElementById('errorAlert');
+        const emailField = document.getElementById('email');
+        const passwordField = document.getElementById('password');
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            
+            errorAlert.classList.add('d-none');
+            errorAlert.textContent = '';
+            submitButton.disabled = true;
+            submitText.classList.add('d-none');
+            spinner.classList.remove('d-none');
+
+            try {
+                const response = await fetch("{% url 'login' %}", {
+                    method: 'POST',
+                    credentials: 'same-origin',  
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: new FormData(form)
+                });
+
+                
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    
+                    window.location.href = data.redirect || "{% url 'profile' %}";
+                } else {
+                    
+                    errorAlert.textContent = data.error || 'Invalid email or password';
+                    errorAlert.classList.remove('d-none');
+                    passwordField.value = '';
+                    passwordField.focus();
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorAlert.textContent = 'Connection error. Please try again.';
+                errorAlert.classList.remove('d-none');
+            } finally {
+                submitButton.disabled = false;
+                submitText.classList.remove('d-none');
+                spinner.classList.add('d-none');
+            }
+        });
+
+        // Real-time form validation
+        form.addEventListener('input', function (e) {
+            if (e.target.matches('#email, #password')) {
+                e.target.classList.remove('is-invalid');
+            }
+        });
+    })();
+
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const icon = document.getElementById('passwordToggleIcon');
+        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('bi-eye-slash');
+    }
+</script>
+{% endblock content %}

@@ -1,0 +1,57 @@
+<!-- products/templates/products/partials/ratings_stars.html -->
+{% load mathfilters %}
+
+<div class="rating-stars" role="img" aria-label="Product rating: {{ product.average_rating|default:0 }} out of 5 stars">
+  <div class="stars-container" style="position: relative; display: inline-block;">
+    <div class="stars-background" style="position: absolute; top: 0; left: 0;">
+      {% for i in "12345" %}
+      <i class="far fa-star text-muted"></i>
+      {% endfor %}
+    </div>
+    
+    <div class="stars-filled" style="position: absolute; top: 0; left: 0; overflow: hidden; width: {% widthratio product.average_rating 1 20 %}%;">
+      {% for i in "12345" %}
+      <i class="fas fa-star text-warning"></i>
+      {% endfor %}
+    </div>
+  </div>
+  
+  <div class="rating-text ml-2">
+    <span class="text-dark">
+      <strong>{{ product.average_rating|default:"0.0" }}</strong>/5.0
+    </span>
+    <small class="text-muted">({{ product.review_count }} review{{ product.review_count|pluralize }})</small>
+  </div>
+</div>
+
+<style>
+.rating-stars {
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+}
+
+.stars-container {
+  unicode-bidi: bidi-override;
+  color: #ddd;
+}
+
+.stars-container i {
+  width: 1.2em;
+}
+
+.stars-filled {
+  color: #ffc107;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .rating-stars {
+    font-size: 1rem;
+  }
+  
+  .rating-text {
+    font-size: 0.8rem;
+  }
+}
+</style>

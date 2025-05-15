@@ -1,0 +1,9 @@
+/* Custom admin styles */
+.ui-datepicker {
+    z-index: 99999 !important;
+}
+
+a.pincode-link {
+    color: #417690;
+    font-weight: 500;
+}

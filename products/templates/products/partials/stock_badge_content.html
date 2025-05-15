@@ -1,0 +1,8 @@
+<!-- radhashyam/products/templates/products/partials/stock_badge_content.html -->
+{% load inventory_tags %}
+<div class="badge 
+    {% if product.stock > 5 %}bg-success
+    {% elif product.stock > 0 %}bg-warning
+    {% else %}bg-danger{% endif %}">
+    {{ product.stock }} in stock
+</div>

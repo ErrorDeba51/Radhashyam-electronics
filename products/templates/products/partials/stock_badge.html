@@ -1,0 +1,5 @@
+<!-- radhashyam/products/templates/partials/stock_badge.html -->
+
+<div class="stock-status" hx-trigger="every 30s" hx-get="{% url 'product_stock' product.id %}" hx-swap="innerHTML">
+    {% include 'products/partials/stock_badge_content.html' %}
+</div>

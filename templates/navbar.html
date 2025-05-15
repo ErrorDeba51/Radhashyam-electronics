@@ -1,0 +1,115 @@
+<!-- radhashyam/templates/navbar.html -->
+
+{% load static %}
+
+<nav class="navbar fixed-top navbar-expand-lg bg-body-tertiary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">
+            <img src="{% static 'images/logo.png' %}" alt="Radhashyam Electronics" width="40">
+            <span>Radhashyam Electronics</span>
+        </a>
+
+        <button class="navbar-toggler" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#mainNav" 
+                aria-controls="mainNav" 
+                aria-expanded="false" 
+                aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <form class="d-flex justify-content-center flex-grow-1 mx-lg-3 my-3 my-lg-0"
+      id="navSearchForm"
+      hx-get="{% url 'advanced_search' %}"
+      hx-trigger="submit, keyup changed delay:500ms"
+      hx-target="#productGrid"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      hx-sync="closest form:replace"
+      action="{% url 'advanced_search' %}"
+      autocomplete="off"
+      style="max-width: 500px; width: 100%;">
+    <div class="input-group w-100">
+        <label for="navSearch" class="visually-hidden">Search products</label>
+        <input class="form-control border-primary rounded-start-pill py-2 ps-4" 
+               type="search" 
+               id="navSearch" 
+               name="q" 
+               placeholder="Search TVs, Fridges, ACs, Washing Machine...."
+               aria-label="Search"
+               value="{{ request.GET.q }}"
+               hx-preserve="true"
+               style="background: rgba(190, 190, 233, 0.7); border: 1px solid rgb(62, 40, 225);">
+        <button class="btn btn-primary rounded-end-pill px-4" type="submit">
+            <i class="bi bi-search"></i>
+        </button>
+    </div>
+    <div class="htmx-indicator" style="position: absolute; right: 70px; top: 50%; transform: translateY(-50%);">
+        <div class="spinner-border spinner-border-sm text-primary"></div>
+    </div>
+</form>
+
+
+            <ul class="navbar-nav ms-auto mt-3 mt-lg-0">
+                <li class="nav-item me-2">
+                    <button class="nav-link btn btn-link contact-btn" data-bs-toggle="modal"
+                        data-bs-target="#chatbotModal" style="background: none; border: none; cursor: pointer">
+                        <i class="bi bi-chat-dots"></i> Contact Us
+                    </button>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false" style="position: relative;">
+                        <i class="bi bi-person-circle"></i> Account
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg">
+                        <li><a class="dropdown-item" href="{% url 'profile' %}">
+                                <i class="bi bi-person-badge"></i>Profile
+                            </a></li>
+                        <li><a class="dropdown-item" href="{% url 'orders:order_history' %}">
+                                <i class="bi bi-receipt"></i>Orders
+                            </a></li>
+                        <li>
+                            <hr class="dropdown-divider my-2">
+                        </li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right"></i>Logout
+                            </a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'appliance' %}">
+                        <i class="bi bi-cpu"></i> Appliance
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'cart:cart_view' %}">
+                        <i class="bi bi-cart"></i> Cart
+                        <span class="badge bg-danger nav-cart-count">{{ request.user.cart.items.count }}</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'signup' %}">
+                        <i class="bi bi-person-plus"></i> Signup
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='white' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
+</style>

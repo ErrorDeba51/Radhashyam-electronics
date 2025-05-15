@@ -1,0 +1,106 @@
+<!-- accounts/templates/accounts/profile.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5 position-relative">
+    <!-- Close Button -->
+    <button onclick="window.history.back()" class="btn btn-close-tech position-absolute end-0 mt-3 me-3"
+        aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4 pe-md-3">
+        <h2 class="mb-3 mb-md-0 me-md-3"><i class="bi bi-person-badge me-2"></i>Your Profile</h2>
+        <a href="{% url 'profile_edit' %}" class="btn btn-primary mt-md-0">
+            <i class="bi bi-pencil-square me-2"></i>Edit Profile
+        </a>
+    </div>
+
+    <div class="profile-card p-4" style="background: rgba(15, 15, 31, 0.98);
+                border-radius: 12px;
+                border: 1px solid rgba(108, 92, 231, 0.3);">
+        <div class="profile-details">
+            <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-person-circle me-3 mt-1" style="color: var(--tech-blue);"></i>
+                <div class="w-100">
+                    <span class="d-block mb-1">Full Name</span>
+                    <div class="profile-value">{{ user.full_name }}</div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-start mb-3">
+                <i class="bi bi-envelope me-3 mt-1" style="color: var(--tech-blue);"></i>
+                <div class="w-100">
+                    <span class=" d-block mb-1">Email Address</span>
+                    <div class="profile-value text-break">{{ user.email }}</div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-start">
+                <i class="bi bi-phone me-3 mt-1" style="color: var(--tech-blue);"></i>
+                <div class="w-100">
+                    <span class=" d-block mb-1">Phone Number</span>
+                    <div class="profile-value">{{ user.phone }}</div>
+                </div>
+            </div>
+
+            <div class="mt-4 text-center">
+                <a href="{% url 'home' %}" class="btn btn-tech w-100 w-md-auto px-5">
+                    <i class="bi bi-box-arrow-right me-2"></i>Shop Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-close-tech {
+        color: red;
+        opacity: 2;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(108, 92, 231, 0.3);
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        background: rgba(15, 15, 31, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1;
+        top: 0.60rem;
+        /* Added manual positioning */
+        margin-top: 0 !important;
+    }
+
+    @media (max-width: 768px) {
+        .btn-close-tech {
+            top: 3rem !important;
+        }
+
+        .d-flex.align-items-start.mb-4 {
+            padding-right: 45px;
+            /* Space for X button */
+        }
+    }
+
+    @media (min-width: 769px) {
+        .pe-md-3 {
+            padding-right: 4rem !important;
+        }
+
+        .me-md-3 {
+            margin-right: 1rem !important;
+        }
+    }
+
+    .btn-close-tech:hover {
+        opacity: 1;
+        background: rgba(108, 92, 231, 0.1);
+        border-color: var(--tech-blue);
+        transform: rotate(90deg);
+    }
+
+    .btn-close-tech i {
+        font-size: 1.35rem;
+        display: block;
+        transition: transform 0.2s ease;
+    }
+</style>
+{% endblock %}

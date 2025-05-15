@@ -1,0 +1,11 @@
+/* Agent info formatting */
+.field-agent_with_contact br {
+    display: block;
+    margin: 3px 0;
+}
+
+/* delivery_assignments.css */
+.field-delivery_otp input {
+    font-family: monospace;
+    letter-spacing: 2px;
+}

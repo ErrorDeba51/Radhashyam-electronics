@@ -1,0 +1,24 @@
+<!-- radhashyam/accounts/templates/accounts/otp_verify.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h3>Verify OTP</h3>
+                    <form id="otpForm">
+                        <div class="mb-3">
+                            <label>Enter OTP</label>
+                            <input type="number" name="otp" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Verify</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

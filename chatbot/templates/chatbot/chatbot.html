@@ -1,0 +1,107 @@
+<!-- radhashyam/chatbot/templates/chatbot/chatbot.html -->
+<div class="chatbot-container">
+    <button class="btn btn-primary chatbot-btn rounded-circle shadow-lg"
+        style="width: 60px; height: 60px; position: fixed; bottom: 30px; right: 30px; z-index: 1000;"
+        data-bs-toggle="modal" data-bs-target="#chatbotModal">
+        <i class="fas fa-comments fa-lg"></i>
+        <span
+            class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+            <span class="visually-hidden">New alerts</span>
+        </span>
+    </button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const DEBUG = true;
+
+        function log(...args) {
+            if (DEBUG) console.log('[CHAT DEBUG]', ...args);
+        }
+
+        function initChat() {
+            log('Initializing chat components');
+
+            const input = document.getElementById('chatInput');
+            const sendButton = document.getElementById('sendMessage');
+            const chatContainer = document.querySelector('#chatMessages .flex-grow-1');
+
+            input.focus();
+
+            async function handleSendMessage() {
+                try {
+                    const message = input.value.trim();
+                    if (!message) return;
+
+                    chatContainer.innerHTML += `
+                        <div class="message user-message mb-2">
+                            <div class="bg-primary text-white rounded-pill p-2 ms-auto" style="max-width:80%">
+                                ${message}
+                            </div>
+                        </div>
+                    `;
+                    input.value = '';
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                    const csrfToken = document.querySelector('meta[name="csrfmiddlewaretoken"]').content;
+                    const formData = new FormData();
+                    formData.append('query', message);
+                    formData.append('csrfmiddlewaretoken', csrfToken);
+
+                    log('Sending request with:', { message, csrfToken });
+
+                    const response = await fetch('/chatbot/', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'same-origin'
+                    });
+
+                    log('Received response:', response.status);
+
+                    if (!response.ok) {
+                        throw new Error(`Server response: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    log('Response data:', data);
+
+                    // Show bot response
+                    chatContainer.innerHTML += `
+                        <div class="message bot-message mb-2">
+                            <div class="bg-light text-dark rounded-pill p-2 me-auto" style="max-width:80%">
+                                ${data.response}
+                            </div>
+                        </div>
+                    `;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    chatContainer.innerHTML += `
+                        <div class="message bot-message mb-2">
+                            <div class="bg-danger text-white rounded-pill p-2 me-auto" style="max-width:80%">
+                                Error: ${error.message}
+                            </div>
+                        </div>
+                    `;
+                }
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+
+            sendButton.addEventListener('click', handleSendMessage);
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                }
+            });
+        }
+
+        const chatModal = document.getElementById('chatbotModal');
+        if (chatModal) {
+            chatModal.addEventListener('shown.bs.modal', initChat);
+        } else {
+            console.error('Chat modal element not found');
+        }
+    });
+</script>

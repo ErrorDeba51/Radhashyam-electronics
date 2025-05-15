@@ -1,0 +1,347 @@
+<!-- accounts/templates/accounts/signup.html -->
+
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-3 my-md-5"> 
+    <div class="row justify-content-center">
+        <div class="col-11 col-md-8 col-lg-6"> 
+            <div class="card auth-card" style="background: rgba(15, 15, 31, 0.98);
+                        border: 1px solid rgba(108, 92, 231, 0.3);
+                        border-radius: 12px;">
+                <div class="card-body p-3 p-md-5"> 
+                    <h2 class="mb-3 mb-md-4 text-center" style="color: var(--tech-blue);">
+                        <i class="bi bi-person-plus me-2"></i>Create Account
+                    </h2>
+
+                    <!-- Error Alert -->
+                    <div id="errorAlert" class="alert alert-danger d-none" role="alert">
+                        <span class="alert-text"></span>
+                    </div>
+
+                    <form id="signupForm" method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="row g-2 g-md-3"> 
+                            <!-- Name Field -->
+                            <div class="col-12">
+                                <label for="name" class="form-label" style="color: var(--tech-blue);">
+                                    <i class="bi bi-person-badge me-2"></i>Full Name
+                                </label>
+                                <input type="text" class="form-control tech-input" id="name" name="name"
+                                    autocomplete="name" required>
+                                <div class="invalid-feedback">Please enter your full name</div>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="col-12">
+                                <label for="email" class="form-label" style="color: var(--tech-blue);">
+                                    <i class="bi bi-envelope me-2"></i>Email
+                                </label>
+                                {% if request.session.reg_data %}
+                                <input type="email" class="form-control tech-input" id="email" name="email"
+                                    autocomplete="email" value="{{ request.session.reg_data.email }}" required readonly>
+                                {% else %}
+                                <input type="email" class="form-control tech-input" id="email" name="email"
+                                    autocomplete="email" required>
+                                {% endif %}
+                                <div class="invalid-feedback">Please enter a valid email</div>
+                            </div>
+
+                            <!-- Phone Field -->
+                            <div class="col-12">
+                                <label for="phone" class="form-label" style="color: var(--tech-blue);">
+                                    <i class="bi bi-phone me-2"></i>Phone Number
+                                </label>
+                                <input type="tel" class="form-control tech-input" id="phone" name="phone"
+                                    autocomplete="tel" pattern="[0-9]{10}" required>
+                                <div class="invalid-feedback">10-digit number required</div>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="col-12">
+                                <label for="password" class="form-label" style="color: var(--tech-blue);">
+                                    <i class="bi bi-lock me-2"></i>Password
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control tech-input" id="password" name="password"
+                                        autocomplete="new-password" required>
+                                    <button type="button" class="btn btn-tech-outline" onclick="togglePassword()">
+                                        <i class="bi bi-eye" id="toggleIcon"></i>
+                                    </button>
+                                </div>
+                                <div class="invalid-feedback">Password required</div>
+
+                                <button class="btn btn-sm btn-link px-0 mt-1" type="button" data-bs-toggle="collapse" data-bs-target="#passwordRules"
+                                    aria-expanded="false" aria-controls="passwordRules">
+                                    View password rules
+                                </button>
+
+                                <!--  password rules -->
+                                <div class="collapse mt-1" id="passwordRules">
+                                    <ul class="small text-muted mb-0 ps-3">
+                                        <li>Your password can’t be too similar to your other personal information.</li>
+                                        <li>Your password must contain at least 8 characters.</li>
+                                        <li>Your password can’t be a commonly used password.</li>
+                                        <li>Your password can’t be entirely numeric.</li>
+                                    </ul>
+                                </div>
+                                
+                            </div>
+
+                            <!-- OTP Section -->
+                            <div id="otpSection" class="col-12" style="display: none;">
+                                <div class="otp-box">
+                                    <label for="otp" class="form-label" style="color: #ffffff;">
+                                        <i class="bi bi-shield-check me-2"></i>Enter OTP
+                                    </label>
+                                    <input type="text" class="form-control tech-input" id="otp" name="otp"
+                                        autocomplete="one-time-code" required>
+                                    <div id="otpTimer" class="small mt-2" style="color: #ffffff;">
+                                        OTP expires in: <span id="countdown" style="color: #ff4444;">10:00</span>
+                                    </div>
+                                    <button type="submit" class="btn btn-accent w-100 mt-3">
+                                        Verify Account
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col-12">
+                                <button id="submitBtn" type="submit" class="btn btn-tech w-100 py-2">
+                                    <span class="submit-text">Send OTP</span>
+                                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                </button>
+                            </div>
+
+                            <!-- Start Over Link -->
+                            <div class="col-12 text-center mt-3">
+                                <a href="{% url 'signup' %}" class="text-tech-blue">
+                                    <i class="bi bi-arrow-repeat me-2"></i>Start Over
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-card {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        margin: 0.5rem;
+        transition: all 0.3s ease;
+        animation: cardEnter 0.4s ease-out;
+    }
+
+    .auth-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(108, 92, 231, 0.2);
+    }
+
+    .tech-input {
+        background: rgba(26, 26, 46, 0.9) !important;
+        border: 1px solid rgba(108, 92, 231, 0.4) !important;
+        color: #ffffff !important;
+        padding: 12px 16px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .tech-input:focus {
+        border-color: var(--tech-blue) !important;
+        box-shadow: 0 0 0 3px rgba(77, 142, 255, 0.15) !important;
+    }
+
+    .btn-tech-outline {
+        background: transparent;
+        border: 1px solid rgba(108, 92, 231, 0.3);
+        color: var(--tech-blue);
+    }
+
+    .btn-tech-outline:hover {
+        background: rgba(108, 92, 231, 0.1);
+    }
+
+    .otp-box {
+        background: rgba(30, 30, 63, 0.9);
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        animation: otpAppear 0.3s ease-out;
+    }
+
+    @keyframes cardEnter {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes otpAppear {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
+        .auth-card {
+            padding: 1.25rem !important;
+        }
+
+        .tech-input {
+            padding: 10px 12px;
+            font-size: 0.875rem;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem !important;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+        }
+
+        .btn-tech {
+            padding: 10px 12px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .auth-card {
+            border-radius: 10px;
+            margin: 0.25rem;
+        }
+
+        .card-body {
+            padding: 1.25rem !important;
+        }
+
+        .tech-input {
+            padding: 8px 10px;
+            font-size: 0.85rem;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .auth-card {
+            padding: 1rem !important;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+        }
+
+        .tech-input {
+            padding: 8px;
+            font-size: 0.825rem;
+        }
+    }
+</style>
+
+<script>
+    
+    const controller = new AbortController();
+
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const icon = document.getElementById('toggleIcon');
+        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('bi-eye-slash');
+    }
+
+    function startOTPTimer() {
+        const timerDisplay = document.getElementById('otpTimer');
+        const countdownElement = document.getElementById('countdown');
+        timerDisplay.style.display = 'block';
+        let timeLeft = 600;
+
+        const timer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                document.getElementById('otpSection').style.display = 'none';
+                showError('OTP has expired. Please request a new one.');
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    function showError(message) {
+        const errorAlert = document.getElementById('errorAlert');
+        errorAlert.querySelector('.alert-text').textContent = message;
+        errorAlert.classList.remove('d-none');
+        setTimeout(() => errorAlert.classList.add('d-none'), 5000);
+    }
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitBtn');
+        const isVerifying = document.getElementById('otpSection').style.display === 'block';
+
+        submitBtn.disabled = true;
+        submitBtn.querySelector('.submit-text').textContent = isVerifying ? 'Verifying...' : 'Sending OTP...';
+        submitBtn.querySelector('.spinner-border').classList.remove('d-none');
+
+        try {
+            const response = await fetch(isVerifying ? "{% url 'verify_otp' %}" : window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: new URLSearchParams(new FormData(e.target)),
+                signal: controller.signal
+            });
+
+            const data = await response.json();
+
+            if (data.message === 'OTP sent successfully') {
+                document.getElementById('otpSection').style.display = 'block';
+                document.getElementById('email').readOnly = true;
+                startOTPTimer();
+            } else if (data.success) {
+                window.location.href = data.redirect;
+            } else if (data.error) {
+                showError(data.error);
+            }
+        } catch (error) {
+            showError('Connection error. Please try again.');
+            console.error('Error:', error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.querySelector('.submit-text').textContent = isVerifying ? 'Verify OTP' : 'Send OTP';
+            submitBtn.querySelector('.spinner-border').classList.add('d-none');
+        }
+    });
+
+    window.addEventListener('beforeunload', () => controller.abort());
+</script>
+{% endblock %}

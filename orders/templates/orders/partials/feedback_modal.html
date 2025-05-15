@@ -1,0 +1,97 @@
+<!-- orders/templates/orders/partials/feedback_modal.html -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="feedbackModalLabel">
+                    <i class="fas fa-star me-2"></i>
+                    Order Feedback
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'orders:submit_feedback' order.id %}">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <h6 class="mb-3 small fw-bold">Rate your experience:</h6>
+                        {% for item in order.items.all %}
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="{{ item.product.images.first.image.url }}" 
+                                     alt="{{ item.product.title }}"
+                                     class="rounded me-2"
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                <span class="small">{{ item.product.title }}</span>
+                            </div>
+                            <div class="star-rating">
+                                {% for i in "54321" %}
+                                <input type="radio" 
+                                       id="star{{ i }}_{{ item.product.id }}" 
+                                       name="rating_{{ item.product.id }}" 
+                                       value="{{ i }}" 
+                                       required>
+                                <label for="star{{ i }}_{{ item.product.id }}" 
+                                       class="star-label"
+                                       aria-label="{{ i }} stars">
+                                    <i class="fas fa-star"></i>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Overall comments:</label>
+                        <textarea class="form-control form-control-sm" 
+                                  name="comments" 
+                                  rows="3"
+                                  placeholder="Share your experience with these products..."
+                                  aria-label="Feedback comments"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Feedback
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.star-rating {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+    gap: 0.25rem;
+}
+
+.star-rating input {
+    display: none;
+}
+
+.star-label {
+    color: #dee2e6;
+    cursor: pointer;
+    transition: color 0.2s;
+    font-size: 1.25rem;
+}
+
+.star-rating input:checked ~ .star-label,
+.star-label:hover,
+.star-label:hover ~ .star-label {
+    color: #ffc107;
+}
+
+@media (max-width: 576px) {
+    .star-label {
+        font-size: 1.1rem;
+    }
+}
+</style>

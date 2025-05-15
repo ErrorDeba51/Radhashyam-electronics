@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <h3 class="card-title mb-4">Verify Email Change</h3>
+
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Enter OTP sent to your new email</label>
+                    <input type="number" name="otp" class="form-control" required placeholder="6-digit code">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Verify OTP
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

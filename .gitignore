@@ -1,0 +1,44 @@
+# Database
+*.sqlite3
+*.db
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Virtual Environment
+venv/
+env/
+
+# Django secret keys
+.env
+.env.local
+
+# Uploaded media
+media/
+
+# IDE files
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+/staticfiles/
+/media/
+/node_modules/
+/cache/
+package-lock.json
+package.json
+cache/
+venv/
+node_modules/
+radhashyam/staticfiles/
+radhashyam/media/
+radhashyam/cache/
+radhashyam/node_modules/

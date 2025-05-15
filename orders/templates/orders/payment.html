@@ -1,0 +1,73 @@
+<!-- radhasyam/orders/templates/orders/payment.html  -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-sm payment-card">
+                <div class="card-body text-center p-4">
+                    <h3 class="mb-4">Complete Payment</h3>
+                    <div class="payment-details mb-4">
+                        <p class="mb-2">Order ID: #{{ order_id|stringformat:"06d" }}</p>
+                        <h4 class="text-success">Amount: ₹{{ amount }}</h4>
+                    </div>
+                    <div id="razorpay-container"></div>
+                    <p class="text-muted mt-3">You will be redirected to Razorpay's secure payment page</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-card {
+    background: #f8f9fa;
+    border-radius: 15px;
+}
+.payment-details {
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+</style>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const options = {
+        key: '{{ key }}',
+        amount: {{ amount }} * 100, 
+        currency: 'INR',
+        order_id: '{{ razorpay_order_id }}',
+        name: 'Radhashyam Electronics',
+        description: 'Order Payment',
+        prefill: {
+            name: '{{ request.user.get_full_name }}',
+            email: '{{ request.user.email }}'
+        },
+        theme: {
+            color: '#4d8eff'
+        },
+        handler: function(response) {
+            window.location.href = "{% url 'orders:payment_success' %}?order_id={{ order_id }}";
+        },
+        modal: {
+            ondismiss: function() {
+                window.location.href = "{% url 'orders:payment_failure' %}?order_id={{ order_id }}";
+            }
+        }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+    
+    rzp.on('payment.failed', function(response) {
+        window.location.href = "{% url 'orders:payment_failure' %}?order_id={{ order_id }}";
+    });
+});
+</script>
+{% endblock %}

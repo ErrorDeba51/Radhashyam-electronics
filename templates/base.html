@@ -1,0 +1,228 @@
+<!-- radhshyam/templates/base.html -->
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" data-bs-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+
+    <!-- Preconnect & Preload -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="{% static '' %}">
+    <link rel="preload" href="{% static 'css/bootstrap.min.css' %}?v={{ TIMESTAMP }}" as="style">
+    <link rel="preload" href="{% static 'js/bootstrap.bundle.min.js' %}?v={{ TIMESTAMP }}" as="script">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}?v={{ TIMESTAMP }}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}?v={{ TIMESTAMP }}">
+
+    <style>
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .htmx-request .htmx-indicator {
+            opacity: 1;
+        }
+        .htmx-indicator.spinner {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-width: 0.2em;
+        }
+    </style>
+
+    <title>{% block title %}Radhashyam Electronics{% endblock %}</title>
+    {% block extra_css %}{% endblock %}
+    
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    <a href="#main-content" class="visually-hidden-focusable">Skip to main content</a>
+
+    {% include 'navbar.html' %}
+
+    <!-- Chat Modal -->
+    <div class="modal fade" id="chatbotModal" tabindex="-1" aria-labelledby="chatbotModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 95vw; margin: 10px">
+            <div class="modal-content shadow-lg" style="border-radius: 15px">
+                <div class="modal-header bg-primary text-white rounded-top">
+                    <h5 class="modal-title" id="chatbotModalLabel">Appliance Assistant</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0" id="chatMessages" style="height: 60vh;">
+                    <div class="d-flex flex-column h-100" role="log" aria-live="polite">
+                        <div class="text-center p-4 bg-light">
+                            <i class="fas fa-robot text-primary mb-2" style="font-size: 2rem;" aria-hidden="true"></i>
+                            <p class="text-muted small mb-0">Ask about: TVs, Fridges, Air conditioners, Washing Machines</p>
+                        </div>
+                        <div class="flex-grow-1 p-3 overflow-auto" style="background: #f8f9fa;"></div>
+                    </div>
+                </div>
+                <div class="modal-footer p-2 border-top-0">
+                    <div class="input-group">
+                        <input type="text" class="form-control rounded-start" id="chatInput"
+                               placeholder="Ask about appliances..." autocomplete="off"
+                               aria-label="Type your message here">
+                        <button class="btn btn-primary rounded-end" id="sendMessage" type="button"
+                                aria-label="Send message">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main id="main-content" class="container mt-4 flex-grow-1" role="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include 'footer.html' %}
+
+    <script src="{% static 'js/htmx.min.js' %}?v=1.9"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}?v={{ TIMESTAMP }}"></script>
+    <script>
+        const sanitizeHTML = (str) => {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if(typeof htmx !== 'undefined') {
+                htmx.config.useTemplateFragments = true;
+                htmx.config.defaultSwapStyle = 'innerHTML';
+                
+                document.body.addEventListener('htmx:configRequest', (event) => {
+                    event.detail.headers['X-CSRFToken'] = document.querySelector('meta[name="csrf-token"]').content;
+                });
+
+                htmx.on('htmx:targetError', (event) => {
+                    console.error('HTMX Target Missing:', event.detail.target);
+                    
+                    if (event.detail.target === '#productGrid' && event.detail.requestConfig) {
+                        const params = new URLSearchParams(event.detail.requestConfig.parameters);
+                        window.location.href = `{% url 'advanced_search' %}?${params.toString()}`;
+                    }
+                });
+
+                htmx.on('htmx:afterRequest', (event) => {
+                    if(event.detail.elt.id === 'navSearchForm') {
+                        const searchParams = new URLSearchParams(window.location.search);
+                        if(!searchParams.has('q')) {
+                            window.history.replaceState({}, '', `?${searchParams.toString()}`);
+                        }
+                    }
+                });
+
+                console.log('HTMX initialized successfully');
+            } else {
+                console.error('HTMX not loaded - verify script sources');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.getElementById('navSearchForm');
+            if(searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    if(!document.getElementById('productGrid')) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        const params = new URLSearchParams(formData);
+                        window.location.href = `{% url 'advanced_search' %}?${params.toString()}`;
+                    }
+                });
+            }
+
+            const navSearch = document.getElementById('navSearch');
+            if(navSearch) {
+                navSearch.addEventListener('input', function() {
+                    const searchPageQ = document.querySelector('#searchForm input[name="q"]');
+                    if(searchPageQ) {
+                        searchPageQ.value = this.value;
+                    }
+                });
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatModal = document.getElementById('chatbotModal');
+            
+            chatModal.addEventListener('shown.bs.modal', function() {
+                const input = document.getElementById('chatInput');
+                const sendButton = document.getElementById('sendMessage');
+                const chatContainer = this.querySelector('.flex-grow-1');
+
+                const handleSendMessage = async () => {
+                    const message = input.value.trim();
+                    if (!message) return;
+
+                    chatContainer.insertAdjacentHTML('beforeend', `
+                        <div class="message user-message mb-2">
+                            <div class="bg-primary text-white rounded-pill p-2 ms-auto" style="max-width:80%">
+                                ${sanitizeHTML(message)}
+                            </div>
+                        </div>`);
+
+                    input.value = '';
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('query', message);
+                        formData.append('csrfmiddlewaretoken', document.querySelector('meta[name="csrf-token"]').content);
+
+                        const response = await fetch('/chatbot/', {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin'
+                        });
+
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        
+                        const data = await response.json();
+                        
+                        // Add bot response
+                        chatContainer.insertAdjacentHTML('beforeend', `
+                            <div class="message bot-message mb-2">
+                                <div class="bg-light text-dark rounded-pill p-2 me-auto" style="max-width:80%">
+                                    ${sanitizeHTML(data.response)}
+                                </div>
+                            </div>`);
+
+                    } catch (error) {
+                        console.error('Chat Error:', error);
+                        chatContainer.insertAdjacentHTML('beforeend', `
+                            <div class="alert alert-danger mt-2">
+                                Failed to send message. Please try again.
+                            </div>`);
+                    }
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                };
+
+                input.addEventListener('keypress', (e) => e.key === 'Enter' && handleSendMessage());
+                sendButton.addEventListener('click', handleSendMessage);
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
